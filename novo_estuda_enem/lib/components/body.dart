@@ -47,15 +47,15 @@ class Body extends StatelessWidget {
                         ]),
                   )),
             ),
-            Divider(
+            const Divider(
               thickness: 1.5,
             ),
-            SizedBox(
+            const SizedBox(
               height: kDefaultPadding,
             ),
             Expanded(
                 child: PageView.builder(
-                    physics: NeverScrollableScrollPhysics(),
+                    physics: const NeverScrollableScrollPhysics(),
                     onPageChanged: _questionController.updateTheQrNum,
                     controller: _questionController.pageController,
                     itemCount: _questionController.questions.length,

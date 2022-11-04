@@ -17,8 +17,8 @@ class QuestionCard extends StatelessWidget {
   Widget build(BuildContext context) {
     QuestionController _controller = Get.put(QuestionController());
     return Container(
-      margin: EdgeInsets.symmetric(horizontal: kDefaultPadding),
-      padding: EdgeInsets.all(kDefaultPadding),
+      margin: const EdgeInsets.symmetric(horizontal: kDefaultPadding),
+      padding: const EdgeInsets.all(kDefaultPadding),
       decoration: BoxDecoration(
           color: Colors.white, borderRadius: BorderRadius.circular(25)),
       child: Column(
@@ -31,7 +31,7 @@ class QuestionCard extends StatelessWidget {
                 .headline6!
                 .copyWith(color: KBlackColor),
           ),
-          SizedBox(
+          const SizedBox(
             height: kDefaultPadding / 2,
           ),
           ...List.generate(
