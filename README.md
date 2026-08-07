@@ -34,4 +34,3 @@ flutter run
 
 Projeto inicial — em desenvolvimento (última atualização: novembro/2022).
 
-> ℹ️ Existem variações deste projeto nos repositórios `novo_estuda_enem_2` e `novo_estuda_enem_3` — recomendação: manter apenas um deles.
