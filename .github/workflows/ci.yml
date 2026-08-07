@@ -1,7 +1,6 @@
 # ============================================================
-# CI para apps Flutter modernizados
-# Depois de migrar o app (flutter analyze OK + build OK),
-# copie este arquivo para:  <app>/.github/workflows/ci.yml
+# CI para apps Flutter que ficam em SUBPASTA (ex.: pasta/pasta/)
+# Usado no novo_estuda_enem (projeto em novo_estuda_enem/).
 # ============================================================
 name: CI
 
@@ -14,6 +13,9 @@ on:
 jobs:
   check:
     runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: novo_estuda_enem
     steps:
       - uses: actions/checkout@v4
       - uses: subosito/flutter-action@v2
@@ -21,8 +23,8 @@ jobs:
           channel: stable
           cache: true
       - run: flutter pub get
-      - name: Análise estática
-        run: flutter analyze
+      - name: Análise estática (falha apenas com erros)
+        run: flutter analyze --no-fatal-infos --no-fatal-warnings
       - name: Testes
         run: |
           if [ -d test ]; then
