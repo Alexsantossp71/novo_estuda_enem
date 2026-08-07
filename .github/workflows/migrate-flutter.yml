@@ -1,0 +1,113 @@
+# ============================================================
+# 🚀 MIGRAÇÃO AUTOMÁTICA FLUTTER → DART 3 (roda 100% no GitHub)
+# ------------------------------------------------------------
+# COMO USAR (sem tocar na sua máquina):
+#   1. Copie este arquivo para:  <app>/.github/workflows/migrate-flutter.yml
+#      (pelo site: repo → Add file → Create new file → cole o conteúdo)
+#   2. Vá em Actions → "🚀 Migrar Flutter (Dart 3)" → botão
+#      "Run workflow" → confirme (org ex.: br.com.alexandre)
+#   3. O GitHub roda tudo e abre um PR "chore: migra app Flutter para Dart 3"
+#   4. Revise o PR: se o flutter analyze apontou erros, corrige os
+#      arquivos direto no PR pelo site (ícone de lápis) — o CI valida
+#      sozinho a cada correção
+#   5. Quando estiver verde, clique em Merge
+#   6. Remova este workflow (deletar o arquivo no PR final ou depois)
+# ============================================================
+name: 🚀 Migrar Flutter (Dart 3)
+
+on:
+  workflow_dispatch:
+    inputs:
+      org:
+        description: 'Prefixo do pacote Android (ex.: br.com.alexandre)'
+        required: false
+        default: 'br.com.alexandre'
+      platforms:
+        description: 'Plataformas a regenerar (separadas por vírgula)'
+        required: false
+        default: 'android,ios,web'
+
+permissions:
+  contents: write
+  pull-requests: write
+
+jobs:
+  migrate:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Flutter (estável)
+        uses: subosito/flutter-action@v2
+        with:
+          channel: stable
+          cache: true
+
+      - name: Backup do README
+        run: cp README.md /tmp/README.bak 2>/dev/null || true
+
+      - name: Regenerar plataformas (limpa Gradle/AGP antigos)
+        run: |
+          rm -rf android ios web macos linux windows
+          flutter create . \
+            --org "${{ github.event.inputs.org }}" \
+            --project-name "${GITHUB_REPOSITORY##*/}" \
+            --platforms=${{ github.event.inputs.platforms }}
+
+      - name: Restaurar README
+        run: cp /tmp/README.bak README.md 2>/dev/null || true
+
+      - name: Ajustar SDK no pubspec.yaml
+        run: |
+          python3 - <<'PY'
+          import re
+          s = open('pubspec.yaml').read()
+          s = re.sub(r"sdk:\s*['\"][^'\"]*['\"]", "sdk: '>=3.3.0 <4.0.0'", s, count=1)
+          open('pubspec.yaml', 'w').write(s)
+          print('✔ SDK ajustado para >=3.3.0 <4.0.0')
+          PY
+
+      - name: Atualizar dependências
+        run: flutter pub upgrade --major-versions || true
+
+      - name: Autofix (dart fix)
+        run: dart fix --apply || true
+
+      - name: Analisar e testar (não bloqueia — vai no corpo do PR)
+        run: |
+          {
+            echo "## Resultado da migração automática"
+            echo ""
+            echo '```'
+            flutter analyze || true
+            if [ -d test ]; then
+              echo ""
+              flutter test || true
+            fi
+            echo '```'
+            echo ""
+            echo "## Próximos passos"
+            echo "- Se houver erros acima, **corrija os arquivos direto neste PR** (ícone ✏️ no GitHub) — o CI valida a cada push."
+            echo "- Erros típicos e soluções: veja a seção 'Problemas conhecidos' do roteiro (flutter-mig/README.md)."
+            echo "- Quando estiver verde, clique em **Merge pull request**."
+          } > /tmp/resumo.md
+
+      - name: Criar branch e abrir PR
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          BASE=$(gh repo view --json defaultBranchRef -q .defaultBranchRef.name)
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git checkout -b chore/migrar-flutter-dart3
+          git add -A
+          if git diff --cached --quiet; then
+            echo "ℹ️ Nenhuma mudança detectada — PR não criado."
+            exit 0
+          fi
+          git commit -m "chore: migra para Dart 3 (flutter create + pubspec + fixes)"
+          git push origin chore/migrar-flutter-dart3
+          gh pr create --base "$BASE" --head chore/migrar-flutter-dart3 \
+            --title "chore: migra app Flutter para Dart 3" \
+            --body-file /tmp/resumo.md
