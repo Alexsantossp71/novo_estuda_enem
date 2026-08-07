@@ -7,11 +7,11 @@ import 'package:novo_estuda_enem/controllers/question_controller.dart';
 import 'package:websafe_svg/websafe_svg.dart';
 
 class Body extends StatelessWidget {
-  const Body({Key? key}) : super(key: key);
+  const Body({super.key});
 
   @override
   Widget build(BuildContext context) {
-    QuestionController _questionController = Get.put(QuestionController());
+    QuestionController questionController = Get.put(QuestionController());
     return Stack(
       children: [
         WebsafeSvg.asset("assets/icons/bg.svg", fit: BoxFit.fill),
@@ -31,17 +31,17 @@ class Body extends StatelessWidget {
               child: Obx(() => Text.rich(
                     TextSpan(
                         text:
-                            'Pergunta ${_questionController.questionNumber.value}',
+                            'Pergunta ${questionController.questionNumber.value}',
                         style: Theme.of(context)
                             .textTheme
-                            .headline4!
+                            .headlineMedium!
                             .copyWith(color: KSecondaryColor),
                         children: [
                           TextSpan(
-                            text: " / ${_questionController.questions.length}",
+                            text: " / ${questionController.questions.length}",
                             style: Theme.of(context)
                                 .textTheme
-                                .headline5!
+                                .headlineSmall!
                                 .copyWith(color: KSecondaryColor),
                           ),
                         ]),
@@ -56,11 +56,11 @@ class Body extends StatelessWidget {
             Expanded(
                 child: PageView.builder(
                     physics: NeverScrollableScrollPhysics(),
-                    onPageChanged: _questionController.updateTheQrNum,
-                    controller: _questionController.pageController,
-                    itemCount: _questionController.questions.length,
+                    onPageChanged: questionController.updateTheQrNum,
+                    controller: questionController.pageController,
+                    itemCount: questionController.questions.length,
                     itemBuilder: (context, index) => QuestionCard(
-                        question: _questionController.questions[index]))), //
+                        question: questionController.questions[index]))), //
           ],
         ))
       ],

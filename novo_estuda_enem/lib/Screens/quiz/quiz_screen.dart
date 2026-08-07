@@ -9,7 +9,7 @@ class QuizzScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    QuestionController _controller = Get.put(QuestionController());
+    QuestionController controller = Get.put(QuestionController());
     return Scaffold(
       extendBodyBehindAppBar: true,
       appBar: AppBar(
@@ -17,7 +17,7 @@ class QuizzScreen extends StatelessWidget {
         elevation: 0,
         actions: [
           TextButton(
-            onPressed: _controller.nextQuestion,
+            onPressed: controller.nextQuestion,
             child: const Text('Pular'),
           ),
         ],
