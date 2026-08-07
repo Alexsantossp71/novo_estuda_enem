@@ -5,11 +5,11 @@ import 'package:novo_estuda_enem/controllers/question_controller.dart';
 
 class Options extends StatelessWidget {
   const Options({
-    Key? key,
+    super.key,
     required this.text,
     required this.index,
     required this.press,
-  }) : super(key: key);
+  });
 
   final String text;
   final int index;

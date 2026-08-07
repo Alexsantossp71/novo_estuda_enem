@@ -7,15 +7,15 @@ import 'package:novo_estuda_enem/models/questions.dart';
 
 class QuestionCard extends StatelessWidget {
   const QuestionCard({
-    Key? key,
+    super.key,
     required this.question,
-  }) : super(key: key);
+  });
 
   final Question question;
 
   @override
   Widget build(BuildContext context) {
-    QuestionController _controller = Get.put(QuestionController());
+    QuestionController controller = Get.put(QuestionController());
     return Container(
       margin: EdgeInsets.symmetric(horizontal: kDefaultPadding),
       padding: EdgeInsets.all(kDefaultPadding),
@@ -28,7 +28,7 @@ class QuestionCard extends StatelessWidget {
             question.question,
             style: Theme.of(context)
                 .textTheme
-                .headline6!
+                .titleLarge!
                 .copyWith(color: KBlackColor),
           ),
           SizedBox(
@@ -39,7 +39,7 @@ class QuestionCard extends StatelessWidget {
               (index) => Options(
                     index: index,
                     text: question.options[index],
-                    press: () => _controller.checkAns(question, index),
+                    press: () => controller.checkAns(question, index),
                   )),
           /*  Options(),
           Options(),

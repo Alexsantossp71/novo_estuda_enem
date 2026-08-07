@@ -10,10 +10,10 @@ class QuestionController extends GetxController
   AnimationController? _animationController;
   Animation? _animation;
 
-  Animation? get animation => this._animation;
+  Animation? get animation => _animation;
 
   late PageController _pageController;
-  PageController get pageController => this._pageController;
+  PageController get pageController => _pageController;
 
   final List<Question> _questions = sample_data
       .map(
@@ -26,22 +26,22 @@ class QuestionController extends GetxController
       )
       .toList();
 
-  List<Question> get questions => this._questions;
+  List<Question> get questions => _questions;
 
   bool _isAnswered = false;
-  bool get isAnswered => this._isAnswered;
+  bool get isAnswered => _isAnswered;
 
   int _correctAns = 0;
-  int get correctAns => this._correctAns;
+  int get correctAns => _correctAns;
 
   int _selectedAns = 0;
-  int get selectedAns => this._selectedAns;
+  int get selectedAns => _selectedAns;
 
   RxInt _questionNumber = 1.obs;
-  RxInt get questionNumber => this._questionNumber;
+  RxInt get questionNumber => _questionNumber;
 
   int _numOfCorrectAns = 0;
-  int get numOfCorrectAns => this._numOfCorrectAns;
+  int get numOfCorrectAns => _numOfCorrectAns;
 
   @override
   void onInit() {
