@@ -157,6 +157,10 @@ jobs:
             echo "- Erros típicos e soluções: veja a seção 'Problemas conhecidos' do roteiro (flutter-mig/README.md)."
             echo "- Quando estiver verde, clique em **Merge pull request**."
           } > /tmp/resumo.md
+          # Limita o tamanho do corpo do PR (limite do GitHub: 65536 chars)
+          head -c 60000 /tmp/resumo.md > /tmp/resumo_cut.md
+          mv /tmp/resumo_cut.md /tmp/resumo.md
+          echo "ℹ️ Tamanho do resumo: $(wc -c < /tmp/resumo.md) bytes"
 
       - name: Criar branch e abrir PR
         env:
