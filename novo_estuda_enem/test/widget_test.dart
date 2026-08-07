@@ -5,8 +5,10 @@ void main() {
   testWidgets('app inicia sem erros fatais', (WidgetTester tester) async {
     app.main();
     await tester.pump();
-    final ex = tester.takeException();
-    if (ex != null) {
+    await tester.pump(const Duration(seconds: 10));
+    for (var i = 0; i < 30; i++) {
+      final ex = tester.takeException();
+      if (ex == null) break;
       final msg = ex.toString();
       if (!msg.contains('Unable to load asset') &&
           !msg.contains('NetworkImage') &&
