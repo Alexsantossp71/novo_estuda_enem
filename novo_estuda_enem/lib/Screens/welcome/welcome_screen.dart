@@ -5,7 +5,7 @@ import 'package:websafe_svg/websafe_svg.dart';
 import 'package:novo_estuda_enem/constant.dart';
 
 class WelcomeScreen extends StatelessWidget {
-  const WelcomeScreen({Key? key}) : super(key: key);
+  const WelcomeScreen({super.key});
 
   @override
   Widget build(BuildContext context) {
@@ -22,7 +22,7 @@ class WelcomeScreen extends StatelessWidget {
                 const Spacer(flex: 2),
                 Text(
                   'Vem estudar pro Enem',
-                  style: Theme.of(context).textTheme.headline4!.copyWith(
+                  style: Theme.of(context).textTheme.headlineMedium!.copyWith(
                       color: Colors.white, fontWeight: FontWeight.bold),
                 ),
                 const Text(''),
@@ -43,19 +43,19 @@ class WelcomeScreen extends StatelessWidget {
                 InkWell(
                   onTap: () => Get.to(QuizzScreen()),
                   child: Container(
-                    child: Text(
-                      "Vamos Começar !!",
-                      style: Theme.of(context)
-                          .textTheme
-                          .button!
-                          .copyWith(color: Colors.black),
-                    ),
                     padding: const EdgeInsets.all(kDefaultPadding * 0.75),
                     decoration: const BoxDecoration(
                       gradient: KprimaryGradient,
                       borderRadius: BorderRadius.all(
                         Radius.circular(12),
                       ),
+                    ),
+                    child: Text(
+                      "Vamos Começar !!",
+                      style: Theme.of(context)
+                          .textTheme
+                          .labelLarge!
+                          .copyWith(color: Colors.black),
                     ),
                   ),
                 ),

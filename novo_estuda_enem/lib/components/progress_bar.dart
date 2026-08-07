@@ -6,8 +6,8 @@ import 'package:websafe_svg/websafe_svg.dart';
 
 class ProgressBar extends StatelessWidget {
   const ProgressBar({
-    Key? key,
-  }) : super(key: key);
+    super.key,
+  });
 
   @override
   Widget build(BuildContext context) {
