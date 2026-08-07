@@ -1,0 +1,32 @@
+# ============================================================
+# CI para apps Flutter modernizados
+# Depois de migrar o app (flutter analyze OK + build OK),
+# copie este arquivo para:  <app>/.github/workflows/ci.yml
+# ============================================================
+name: CI
+
+on:
+  push:
+    branches: [main, master]
+  pull_request:
+  workflow_dispatch:
+
+jobs:
+  check:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: subosito/flutter-action@v2
+        with:
+          channel: stable
+          cache: true
+      - run: flutter pub get
+      - name: Análise estática
+        run: flutter analyze
+      - name: Testes
+        run: |
+          if [ -d test ]; then
+            flutter test
+          else
+            echo "Sem pasta test/ — pulando testes"
+          fi
