@@ -12,6 +12,10 @@
 #      sozinho a cada correção
 #   5. Quando estiver verde, clique em Merge
 #   6. Remova este workflow (deletar o arquivo no PR final ou depois)
+#
+# v2: detecta o projeto em subpasta (ex.: pasta/pasta/pubspec.yaml),
+#     substitui o widget_test padrão por um smoke test do app real,
+#     roda build_runner quando o projeto usa freezed.
 # ============================================================
 name: 🚀 Migrar Flutter (Dart 3)
 
@@ -44,11 +48,33 @@ jobs:
           channel: stable
           cache: true
 
+      - name: Localizar projeto Flutter (suporta subpasta)
+        id: locate
+        run: |
+          # Se não há pubspec na raiz, procura em subpasta
+          if [ ! -f pubspec.yaml ]; then
+            P=$(find . -maxdepth 3 -name pubspec.yaml -not -path "*/\.*" | head -1)
+            if [ -n "$P" ]; then
+              DIR=$(dirname "$P")
+              echo "📁 Projeto encontrado em: $DIR"
+              echo "dir=$DIR" >> "$GITHUB_OUTPUT"
+            else
+              echo "❌ Nenhum pubspec.yaml encontrado"
+              exit 1
+            fi
+          else
+            echo "📁 Projeto na raiz"
+            echo "dir=." >> "$GITHUB_OUTPUT"
+          fi
+
       - name: Backup do README
-        run: cp README.md /tmp/README.bak 2>/dev/null || true
+        run: |
+          cp README.md /tmp/README.bak 2>/dev/null || true
+          cp "${{ steps.locate.outputs.dir }}/README.md" /tmp/README_sub.bak 2>/dev/null || true
 
       - name: Regenerar plataformas (limpa Gradle/AGP antigos)
         run: |
+          cd "${{ steps.locate.outputs.dir }}"
           rm -rf android ios web macos linux windows
           flutter create . \
             --org "${{ github.event.inputs.org }}" \
@@ -56,10 +82,13 @@ jobs:
             --platforms=${{ github.event.inputs.platforms }}
 
       - name: Restaurar README
-        run: cp /tmp/README.bak README.md 2>/dev/null || true
+        run: |
+          cp /tmp/README.bak "${{ steps.locate.outputs.dir }}/README.md" 2>/dev/null || true
+          cp /tmp/README_sub.bak "${{ steps.locate.outputs.dir }}/README.md" 2>/dev/null || true
 
       - name: Ajustar SDK no pubspec.yaml
         run: |
+          cd "${{ steps.locate.outputs.dir }}"
           python3 - <<'PY'
           import re
           s = open('pubspec.yaml').read()
@@ -69,13 +98,47 @@ jobs:
           PY
 
       - name: Atualizar dependências
-        run: flutter pub upgrade --major-versions || true
+        run: |
+          cd "${{ steps.locate.outputs.dir }}"
+          flutter pub upgrade --major-versions || true
 
       - name: Autofix (dart fix)
-        run: dart fix --apply || true
+        run: |
+          cd "${{ steps.locate.outputs.dir }}"
+          dart fix --apply || true
+
+      - name: Regenerar código gerado (freezed/build_runner, se usado)
+        run: |
+          cd "${{ steps.locate.outputs.dir }}"
+          if grep -q "build_runner" pubspec.yaml; then
+            echo "🔨 build_runner detectado — regenerando arquivos gerados..."
+            dart run build_runner build --delete-conflicting-outputs || true
+          else
+            echo "ℹ️ Sem build_runner — pulando"
+          fi
+
+      - name: Corrigir widget_test padrão (se referenciar MyApp inexistente)
+        run: |
+          cd "${{ steps.locate.outputs.dir }}"
+          PKG=$(grep -m1 "^name:" pubspec.yaml | awk '{print $2}')
+          if [ -f test/widget_test.dart ] && ! grep -q "MyApp" lib/main.dart 2>/dev/null; then
+            cat > test/widget_test.dart <<DART
+          import 'package:flutter_test/flutter_test.dart';
+          import 'package:$PKG/main.dart';
+
+          void main() {
+            testWidgets('app inicia sem erros', (WidgetTester tester) async {
+              await tester.pumpWidget(const MyApp());
+              expect(tester.takeException(), isNull);
+            });
+          }
+          DART
+            echo "✔ widget_test.dart substituído por smoke test do app real (package: $PKG)"
+          fi
 
       - name: Analisar e testar (não bloqueia — vai no corpo do PR)
         run: |
+          cd "${{ steps.locate.outputs.dir }}"
           {
             echo "## Resultado da migração automática"
             echo ""
