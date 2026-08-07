@@ -5,9 +5,16 @@ void main() {
   testWidgets('app inicia sem erros fatais', (WidgetTester tester) async {
     app.main();
     await tester.pump();
-    // Apps legados carregam assets/rede sem mocks no teste:
-    // tolera exceções de recurso, mas falha em erros de código reais.
-    tester.takeException();
-    expect(find.byType(WidgetsBinding.instance.rootElement!.widget.runtimeType), isNotNull);
+    // Tolerâncias esperadas em apps legados sem mocks de rede/assets:
+    final ex = tester.takeException();
+    if (ex != null) {
+      final msg = ex.toString();
+      if (!msg.contains('Unable to load asset') &&
+          !msg.contains('NetworkImage') &&
+          !msg.contains('HTTP request failed') &&
+          !msg.contains('RenderFlex overflowed')) {
+        fail('Exceção inesperada ao iniciar o app: $ex');
+      }
+    }
   });
 }
