@@ -117,23 +117,25 @@ jobs:
             echo "ℹ️ Sem build_runner — pulando"
           fi
 
-      - name: Corrigir widget_test padrão (se referenciar MyApp inexistente)
+      - name: Criar smoke test (substitui widget_test padrão)
         run: |
           cd "${{ steps.locate.outputs.dir }}"
           PKG=$(grep -m1 "^name:" pubspec.yaml | awk '{print $2}')
-          if [ -f test/widget_test.dart ] && ! grep -q "MyApp" lib/main.dart 2>/dev/null; then
+          # se o teste padrão referencia MyApp que não existe, substituir por smoke test via main()
+          if [ -f test/widget_test.dart ] && ! grep -q "class MyApp" lib/main.dart 2>/dev/null; then
             cat > test/widget_test.dart <<DART
           import 'package:flutter_test/flutter_test.dart';
-          import 'package:$PKG/main.dart';
+          import 'package:$PKG/main.dart' as app;
 
           void main() {
             testWidgets('app inicia sem erros', (WidgetTester tester) async {
-              await tester.pumpWidget(const MyApp());
+              app.main();
+              await tester.pumpAndSettle();
               expect(tester.takeException(), isNull);
             });
           }
           DART
-            echo "✔ widget_test.dart substituído por smoke test do app real (package: $PKG)"
+            echo "✔ smoke test criado (package: $PKG)"
           fi
 
       - name: Analisar e testar (não bloqueia — vai no corpo do PR)
@@ -170,6 +172,8 @@ jobs:
             exit 0
           fi
           git commit -m "chore: migra para Dart 3 (flutter create + pubspec + fixes)"
+          # Remove branch remota antiga se existir (permite re-executar o workflow)
+          git push origin --delete chore/migrar-flutter-dart3 2>/dev/null || true
           git push origin chore/migrar-flutter-dart3
           gh pr create --base "$BASE" --head chore/migrar-flutter-dart3 \
             --title "chore: migra app Flutter para Dart 3" \
